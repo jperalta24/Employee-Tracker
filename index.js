@@ -194,57 +194,61 @@ const addEmployee = () => {
 };
 
 const updateEmployee = () => {
-
     db.query(`SELECT * FROM employee`, (error, results) => {
+      if (error) throw error;
+      const employeeChoices = results.map(employee => `${employee.first_name} ${employee.last_name}`);
+  
+      db.query(`SELECT * FROM role`, (error, results) => {
         if (error) throw error;
-        const employeeChoices = results.map(employee => `${employee.first_name} ${employee.last_name}`);
-
-        db.query('SELECT * FROM role', (error, results) => {
-            if (error) throw error;
-            const roleChoices = results.map(role => role.title);
-
-            inquirer
-                .prompt(
-                    [
-                        {
-                            type: 'list',
-                            message: 'Which employee do you want to update?',
-                            choices: employeeChoices,
-                            name: employees
-                        },
-                        {
-                            type: 'list',
-                            message: 'What is the employees new role?',
-                            choice: roleChoices,
-                            name: roles
-                        }
-                    ]
-                )
-                .then((answers) => {
-                    const selectedEmployee = answers.employeeChoices;
-                    const selectedRole = answers.roleChoices;
-                    db.query(`SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) ='${selectedEmployee}'`,
-                        (error, results) => {
-                            if (error) throw error;
-                            const employeeID = results[0].id;
-
-
-                            db.query(`SELECT id FROM role WHERE title = '${selectedRoleTitle}'`, (error, results) => {
-                                if (error) throw error;
-                                const selectedRoleId = results[0].id;
-                                db.query(`UPDATE employee SET role = ${selectedRoleId} WHERE id = ${employeeID}`,
-                                    (error, results) => {
-                                        if (error) throw error;
-                                        console.log('The employee role has been updated successfully.');
-                                    })
-
-                            })
-                        })
-
-                })
-        })
-    })
-};
+        const roleChoices = results.map(role => role.title);
+  
+        inquirer
+          .prompt([
+            {
+              type: "list",
+              message: "Which employee do you want to update?",
+              choices: employeeChoices,
+              name: "employees"
+            },
+            {
+              type: "list",
+              message: "What is the employee's new role?",
+              choices: roleChoices,
+              name: "roles"
+            }
+          ])
+          .then(answers => {
+            const selectedEmployee = answers.employees;
+            const selectedRole = answers.roles;
+  
+            db.query(
+              `SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) ='${selectedEmployee}'`,
+              (error, results) => {
+                if (error) throw error;
+                const employeeID = results[0].id;
+  
+                db.query(
+                  `SELECT id FROM role WHERE title = '${selectedRole}'`,
+                  (error, results) => {
+                    if (error) throw error;
+                    const selectedRoleId = results[0].id;
+                    db.query(
+                      `UPDATE employee SET role_id = ${selectedRoleId} WHERE id = ${employeeID}`,
+                      (error, results) => {
+                        if (error) throw error;
+                        console.log("The employee role has been updated successfully.");
+                        startPrompt();
+                      }
+                    );
+                  }
+                );
+              }
+            );
+          });
+      });
+    });
+  };
+  
 
 const quit = () => {
     console.log('Goodbye');
