@@ -10,7 +10,7 @@ const startPrompt = () => {
                 type: 'list',
                 message: 'What would you like to do?',
                 choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department',
-                    'Add a role', 'Add an employee', 'Quit'],
+                    'Add a role', 'Add an employee', 'Update an employee role', 'Quit'],
                 name: 'selection'
             },
         ])
@@ -33,6 +33,9 @@ const startPrompt = () => {
                     break;
                 case 'Add an employee':
                     addEmployee();
+                    break;
+                case 'Update an employee role':
+                    updateEmployee();
                     break;
                 case 'Quit':
                     quit();
@@ -147,47 +150,100 @@ const addEmployee = () => {
             if (error) throw error;
             const managerChoice = results.map(employee =>
                 `${employee.first_name} ${employee.last_name}`);
-        
 
-        inquirer
-            .prompt([
-                {
-                    type: 'input',
-                    message: 'What is the employees first name?',
-                    name: 'first_name'
-                },
-                {
-                    type: 'input',
-                    message: 'What is the employees last name?',
-                    name: 'last_name'
-                },
-                {
-                    type: 'list',
-                    message: 'What is the employees role?',
-                    choices: roleChoices,
-                    name: 'role',
-                },
-                {
-                    type: 'list',
-                    message: 'Who is the employee\'s manager?',
-                    choices: managerChoice,
-                    name: 'manager',
-                }
-            ])
-            .then((answers) => {
-                const manager = results.find(employee => `${employee.first_name} ${employee.last_name}` === answers.manager);
-                db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+
+            inquirer
+                .prompt([
+                    {
+                        type: 'input',
+                        message: 'What is the employees first name?',
+                        name: 'first_name'
+                    },
+                    {
+                        type: 'input',
+                        message: 'What is the employees last name?',
+                        name: 'last_name'
+                    },
+                    {
+                        type: 'list',
+                        message: 'What is the employees role?',
+                        choices: roleChoices,
+                        name: 'role',
+                    },
+                    {
+                        type: 'list',
+                        message: 'Who is the employee\'s manager?',
+                        choices: managerChoice,
+                        name: 'manager',
+                    }
+                ])
+                .then((answers) => {
+                    const manager = results.find(employee => `${employee.first_name} ${employee.last_name}` === answers.manager);
+                    db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
                 VALUES ('${answers.first_name}', '${answers.last_name}',
                         (SELECT id FROM role WHERE title = '${answers.role}'),
                         ${manager ? manager.id : null})`,
-                    (error) => {
-                        if (error) throw error;
-                        console.log(`The employee '${answers.first_name} ${answers.last_name}' has been added successfully.`);
-                        startPrompt();
-                    })
-            })
+                        (error) => {
+                            if (error) throw error;
+                            console.log(`The employee '${answers.first_name} ${answers.last_name}' has been added successfully.`);
+                            startPrompt();
+                        })
+                })
         })
     });
+};
+
+const updateEmployee = () => {
+
+    db.query(`SELECT * FROM employee`, (error, results) => {
+        if (error) throw error;
+        const employeeChoices = results.map(employee => `${employee.first_name} ${employee.last_name}`);
+
+        db.query('SELECT * FROM role', (error, results) => {
+            if (error) throw error;
+            const roleChoices = results.map(role => role.title);
+
+            inquirer
+                .prompt(
+                    [
+                        {
+                            type: 'list',
+                            message: 'Which employee do you want to update?',
+                            choices: employeeChoices,
+                            name: employees
+                        },
+                        {
+                            type: 'list',
+                            message: 'What is the employees new role?',
+                            choice: roleChoices,
+                            name: roles
+                        }
+                    ]
+                )
+                .then((answers) => {
+                    const selectedEmployee = answers.employeeChoices;
+                    const selectedRole = answers.roleChoices;
+                    db.query(`SELECT id FROM employee WHERE CONCAT(first_name, ' ', last_name) ='${selectedEmployee}'`,
+                        (error, results) => {
+                            if (error) throw error;
+                            const employeeID = results[0].id;
+
+
+                            db.query(`SELECT id FROM role WHERE title = '${selectedRoleTitle}'`, (error, results) => {
+                                if (error) throw error;
+                                const selectedRoleId = results[0].id;
+                                db.query(`UPDATE employee SET role = ${selectedRoleId} WHERE id = ${employeeID}`,
+                                    (error, results) => {
+                                        if (error) throw error;
+                                        console.log('The employee role has been updated successfully.');
+                                    })
+
+                            })
+                        })
+
+                })
+        })
+    })
 };
 
 const quit = () => {
