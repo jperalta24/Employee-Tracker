@@ -1,17 +1,17 @@
 
-const { prompt } = require('inquirer');
+const inquirer = require('inquirer');
 const db = require('./db/connections');
-const cTable = require('console.table');
+// const cTable = require('console.table');
 
 const starPrompt = () => {
-
-    prompt([
+    inquirer
+    .prompt([
         {
             type: 'list',
             message: 'What would you like to do?',
             choices: ['View all departments', 'View all roles', 'View all employees'],
             name: 'selection'
-        }
+        },
     ])
         .then((answers) => {
             switch (answers.selection) {
@@ -55,4 +55,3 @@ const viewEmployees = () => {
 };
 
 starPrompt();
-console.log(inquirer.prompt);
