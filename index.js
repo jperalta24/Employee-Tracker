@@ -10,7 +10,7 @@ const startPrompt = () => {
                 type: 'list',
                 message: 'What would you like to do?',
                 choices: ['View all departments', 'View all roles', 'View all employees', 'Add a department',
-                    'Add a role', 'Add an employee'],
+                    'Add a role', 'Add an employee', 'Quit'],
                 name: 'selection'
             },
         ])
@@ -138,11 +138,61 @@ const addRole = () => {
 };
 
 const addEmployee = () => {
+    // creates an array of choices for each role title 
+    db.query('SELECT * FROM role', (error, results) => {
+        if (error) throw error;
+        const roleChoices = results.map(role => role.title);
+        // creates an array of choices for manager 
+        db.query('SELECT * FROM employee', (error, results) => {
+            if (error) throw error;
+            const managerChoice = results.map(employee =>
+                `${employee.first_name} ${employee.last_name}`);
+        
 
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    message: 'What is the employees first name?',
+                    name: 'first_name'
+                },
+                {
+                    type: 'input',
+                    message: 'What is the employees last name?',
+                    name: 'last_name'
+                },
+                {
+                    type: 'list',
+                    message: 'What is the employees role?',
+                    choices: roleChoices,
+                    name: 'role',
+                },
+                {
+                    type: 'list',
+                    message: 'Who is the employee\'s manager?',
+                    choices: managerChoice,
+                    name: 'manager',
+                }
+            ])
+            .then((answers) => {
+                const manager = results.find(employee => `${employee.first_name} ${employee.last_name}` === answers.manager);
+                db.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id)
+                VALUES ('${answers.first_name}', '${answers.last_name}',
+                        (SELECT id FROM role WHERE title = '${answers.role}'),
+                        ${manager ? manager.id : null})`,
+                    (error) => {
+                        if (error) throw error;
+                        console.log(`The employee '${answers.first_name} ${answers.last_name}' has been added successfully.`);
+                        startPrompt();
+                    })
+            })
+        })
+    });
 };
 
 const quit = () => {
     console.log('Goodbye');
+    // node js method that that terminates the node js process
     process.exit();
 };
 
