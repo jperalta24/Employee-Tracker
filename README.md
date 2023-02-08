@@ -4,6 +4,8 @@
 
 This project is a command-line application that allows a business owner to manage their company's employee database using Node.js, Inquirer, and MySQL. The application allows the user to view and manage departments, roles, and employees. The user can add new departments, roles, and employees to the database, as well as update an employee's role.
 
+![](/Images/Screenshot%202023-02-07%20193825.jpg)
+
 ## Prerequisites
 
 Before you begin, ensure that you have installed the following:
@@ -37,7 +39,7 @@ The application will meet the following acceptance criteria:
 
 ## Video Demonstration
 
-A video walkthrough of the application's functionality can be found at [LINK TO YOUTUBE OR VIMEO].
+A video walkthrough of the application's functionality can be found at Link: (https://drive.google.com/file/d/1BEv18Ngx6Sug2PABJUoMT3jGtzaQzVDV/view)
 
 ### Built With 
 - Node.js
