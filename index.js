@@ -46,6 +46,7 @@ const startPrompt = () => {
         });
 };
 
+
 const viewDepartments = () => {
     db.query('SELECT * FROM department', (error, results, fields) => {
         if (error) throw error;
@@ -53,6 +54,7 @@ const viewDepartments = () => {
         startPrompt();
     });
 };
+
 
 const viewRoles = () => {
     db.query('SELECT * FROM role', (error, results, fields) => {
